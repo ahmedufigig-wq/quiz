@@ -6,6 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background">
 
-    <!-- عناصر الأسئلة والأزرار الخاصة بتطبيقك ستوضع هنا -->
+    <!-- عناصر الأسئلة والأزرار ستظهر هنا فوق الخلفية -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
