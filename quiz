@@ -1,0 +1,1535 @@
+settings.gradle.ktspluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "FriendsQuiz"
+include(":app")
+build.gradle.ktsplugins {
+    id("com.android.application") version "8.5.2" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+}app/build.gradle.ktsplugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.friends.quiz"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.friends.quiz"
+        // 21 = Android 5.0 وما فوق (يغطي تقريباً كل الهواتف المستخدمة)
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            // توقيع تجريبي حتى يمكن تثبيت نسخة release مباشرة بدون مفتاح خاص
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+// لا توجد أي مكتبات خارجية عمداً: التطبيق يعتمد على أندرويد الأساسي فقط
+// حتى يعمل على كل الإصدارات ويبقى حجمه صغيراً (أقل من 1 ميجا تقريباً).
+app/src/main/AndroidManifest.xml<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <application
+        android:allowBackup="false"
+        android:label="مسابقة الأصدقاء"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+app/src/main/assets/questions.json[
+  {"q": "ما عاصمة مصر؟", "o": ["القاهرة", "الإسكندرية", "الجيزة", "أسوان"], "a": 0},
+  {"q": "ما أكبر كوكب في المجموعة الشمسية؟", "o": ["المشتري", "زحل", "الأرض", "المريخ"], "a": 0},
+  {"q": "كم عدد أيام الأسبوع؟", "o": ["5", "6", "7", "8"], "a": 2},
+  {"q": "ما أكبر محيط في العالم؟", "o": ["المحيط الهادئ", "المحيط الأطلسي", "المحيط الهندي", "المحيط المتجمد الشمالي"], "a": 0},
+  {"q": "كم عدد قارات العالم (حسب التقسيم الشائع)؟", "o": ["5", "6", "7", "8"], "a": 2},
+  {"q": "ما الغاز الذي نتنفسه لنعيش؟", "o": ["الأكسجين", "النيتروجين", "الهيدروجين", "ثاني أكسيد الكربون"], "a": 0},
+  {"q": "ما أسرع حيوان بري؟", "o": ["الفهد", "الأسد", "الحصان", "النمر"], "a": 0},
+  {"q": "ما أكبر حيوان في العالم؟", "o": ["الحوت الأزرق", "الفيل", "الزرافة", "القرش الأبيض"], "a": 0},
+  {"q": "كم عدد لاعبي فريق كرة القدم داخل الملعب؟", "o": ["9", "10", "11", "12"], "a": 2},
+  {"q": "من هو مخترع المصباح الكهربائي العملي؟", "o": ["توماس إديسون", "إسحاق نيوتن", "ألبرت أينشتاين", "غراهام بيل"], "a": 0},
+  {"q": "ما أصغر دولة في العالم مساحةً؟", "o": ["الفاتيكان", "موناكو", "مالطا", "سان مارينو"], "a": 0},
+  {"q": "ما عاصمة اليابان؟", "o": ["طوكيو", "كيوتو", "أوساكا", "سيول"], "a": 0},
+  {"q": "أي حيوان يلقّب بـ «سفينة الصحراء»؟", "o": ["الجمل", "الحصان", "الحمار", "الغزال"], "a": 0},
+  {"q": "كم عدد ألوان قوس قزح؟", "o": ["5", "6", "7", "8"], "a": 2},
+  {"q": "ما أعلى جبل في العالم؟", "o": ["إيفرست", "كي 2", "كليمنجارو", "مون بلان"], "a": 0},
+  {"q": "أي كوكب يلقّب بالكوكب الأحمر؟", "o": ["المريخ", "الزهرة", "عطارد", "نبتون"], "a": 0},
+  {"q": "ما عاصمة المملكة العربية السعودية؟", "o": ["الرياض", "جدة", "مكة المكرمة", "الدمام"], "a": 0},
+  {"q": "ما اللغة الرسمية في البرازيل؟", "o": ["البرتغالية", "الإسبانية", "الإنجليزية", "الفرنسية"], "a": 0},
+  {"q": "أي عضو في جسم الإنسان يضخ الدم؟", "o": ["القلب", "الكبد", "الرئتان", "الكلية"], "a": 0},
+  {"q": "كم عدد أسنان الإنسان البالغ (مع ضرس العقل)؟", "o": ["28", "30", "32", "36"], "a": 2},
+  {"q": "ما أكبر دولة في العالم مساحةً؟", "o": ["روسيا", "كندا", "الصين", "الولايات المتحدة"], "a": 0},
+  {"q": "كم يساوي 12 × 12؟", "o": ["124", "144", "164", "132"], "a": 1},
+  {"q": "ما ناتج 15 + 27؟", "o": ["32", "42", "52", "41"], "a": 1},
+  {"q": "من أول إنسان وطئت قدماه سطح القمر؟", "o": ["نيل أرمسترونغ", "يوري غاغارين", "باز ألدرين", "جون غلين"], "a": 0},
+  {"q": "في أي عام انتهت الحرب العالمية الثانية؟", "o": ["1945", "1939", "1950", "1918"], "a": 0},
+  {"q": "ما المعدن الذي يكون سائلاً في درجة حرارة الغرفة؟", "o": ["الزئبق", "الحديد", "النحاس", "الألمنيوم"], "a": 0},
+  {"q": "ما الرمز الكيميائي للذهب؟", "o": ["Au", "Ag", "Fe", "Go"], "a": 0},
+  {"q": "ما أكبر صحراء حارة في العالم؟", "o": ["الصحراء الكبرى", "صحراء النفود", "صحراء كالاهاري", "صحراء جوبي"], "a": 0},
+  {"q": "ما عاصمة تركيا؟", "o": ["أنقرة", "إسطنبول", "إزمير", "بورصة"], "a": 0},
+  {"q": "كم عدد سور القرآن الكريم؟", "o": ["114", "110", "120", "99"], "a": 0},
+  {"q": "ما عاصمة دولة الإمارات العربية المتحدة؟", "o": ["أبوظبي", "دبي", "الشارقة", "العين"], "a": 0},
+  {"q": "من رسم لوحة الموناليزا؟", "o": ["ليوناردو دا فينشي", "بابلو بيكاسو", "فان غوخ", "مايكل أنجلو"], "a": 0},
+  {"q": "كم عدد عظام جسم الإنسان البالغ؟", "o": ["206", "150", "300", "180"], "a": 0},
+  {"q": "ما أقرب نجم إلى الأرض؟", "o": ["الشمس", "ألفا قنطورس", "الشعرى اليمانية", "النجم القطبي"], "a": 0},
+  {"q": "ما عملة اليابان؟", "o": ["الين", "اليوان", "الوون", "الدولار"], "a": 0},
+  {"q": "كم دقيقة في الساعة الواحدة؟", "o": ["30", "60", "90", "100"], "a": 1},
+  {"q": "أي طائر لا يطير ويعيش في القطب الجنوبي؟", "o": ["البطريق", "النسر", "الحمام", "البجع"], "a": 0},
+  {"q": "كم عدد حروف اللغة العربية؟", "o": ["28", "29", "30", "26"], "a": 0},
+  {"q": "ما عاصمة إسبانيا؟", "o": ["مدريد", "برشلونة", "إشبيلية", "فالنسيا"], "a": 0},
+  {"q": "ما أكبر قارة في العالم مساحةً؟", "o": ["آسيا", "أفريقيا", "أوروبا", "أمريكا الشمالية"], "a": 0},
+  {"q": "ما أصغر قارة في العالم مساحةً؟", "o": ["أستراليا (أوقيانوسيا)", "أوروبا", "أنتاركتيكا", "أمريكا الجنوبية"], "a": 0},
+  {"q": "ما الجهاز المستخدم لقياس درجة الحرارة؟", "o": ["الترمومتر", "البارومتر", "الأميتر", "الفولتميتر"], "a": 0},
+  {"q": "أي كوكب تشتهر حلقاته الواضحة حوله؟", "o": ["زحل", "عطارد", "الزهرة", "المريخ"], "a": 0},
+  {"q": "كم عدد أضلاع المثلث؟", "o": ["3", "4", "5", "6"], "a": 0},
+  {"q": "ما أطول حيوان في العالم؟", "o": ["الزرافة", "الفيل", "النعامة", "الجمل"], "a": 0},
+  {"q": "ما لغة تصميم هيكل صفحات الويب؟", "o": ["HTML", "Python", "SQL", "C++"], "a": 0},
+  {"q": "ما عاصمة فرنسا؟", "o": ["باريس", "ليون", "مرسيليا", "نيس"], "a": 0},
+  {"q": "ما الكوكب الأقرب إلى الشمس؟", "o": ["عطارد", "الزهرة", "الأرض", "المريخ"], "a": 0},
+  {"q": "ما الشهر الذي يصوم فيه المسلمون؟", "o": ["رمضان", "شعبان", "شوال", "محرم"], "a": 0},
+  {"q": "كم عدد الأشهر الهجرية في السنة؟", "o": ["12", "10", "11", "13"], "a": 0}
+}app/src/main/java/com/friends/quiz/Net.ktpackage com.friends.quiz
+
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.io.PrintWriter
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.NetworkInterface
+import java.net.ServerSocket
+import java.net.Socket
+import java.net.SocketTimeoutException
+import java.util.Collections
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
+import kotlin.concurrent.thread
+
+/*
+ * طبقة الشبكة والمنطق (لا تعتمد على أي شيء من واجهة أندرويد).
+ *
+ * البروتوكول: رسائل JSON، كل رسالة في سطر، عبر TCP على المنفذ 8080.
+ *   لاعب -> خادم : {"t":"join","name":"..."}   {"t":"answer","i":رقم_السؤال,"c":رقم_الخيار}
+ *   خادم -> لاعب : joined / players / lobby / question / result / final / error
+ * المضيف نفسه يتصل بخادمه عبر 127.0.0.1 كأنه لاعب عادي، فتكون الواجهة واحدة للجميع.
+ * اكتشاف الغرف تلقائياً: المضيف يبث رسالة UDP كل ثانية على المنفذ 8081.
+ */
+
+const val GAME_PORT = 8080
+const val DISCOVERY_PORT = 8081
+
+class Question(val text: String, val options: List<String>, val answer: Int)
+
+fun parseQuestions(json: String): List<Question> {
+    val out = ArrayList<Question>()
+    val arr = JSONArray(json)
+    for (i in 0 until arr.length()) {
+        val o = arr.getJSONObject(i)
+        val opts = o.getJSONArray("o")
+        val list = ArrayList<String>()
+        for (k in 0 until opts.length()) list.add(opts.getString(k))
+        val ans = o.getInt("a")
+        if (list.size >= 2 && ans in 0 until list.size) {
+            out.add(Question(o.getString("q"), list, ans))
+        }
+    }
+    return out
+}
+
+fun questionsToJson(list: List<Question>): String {
+    val arr = JSONArray()
+    for (q in list) {
+        val opts = JSONArray()
+        for (o in q.options) opts.put(o)
+        arr.put(JSONObject().put("q", q.text).put("o", opts).put("a", q.answer))
+    }
+    return arr.toString()
+}
+
+/** عناوين IPv4 الخاصة بهذا الهاتف (عنوان الهوت سبوت يكون غالباً 192.168.43.1 أو شبيهه). */
+fun localIpv4(): List<String> {
+    val out = ArrayList<String>()
+    try {
+        val en = NetworkInterface.getNetworkInterfaces() ?: return out
+        for (ni in Collections.list(en)) {
+            if (!ni.isUp || ni.isLoopback) continue
+            for (addr in Collections.list(ni.inetAddresses)) {
+                if (addr is Inet4Address && !addr.isLoopbackAddress) {
+                    val h = addr.hostAddress
+                    if (h != null) out.add(h)
+                }
+            }
+        }
+    } catch (e: Exception) {
+    }
+    return out
+}
+
+fun broadcastTargets(): List<InetAddress> {
+    val out = ArrayList<InetAddress>()
+    try {
+        val en = NetworkInterface.getNetworkInterfaces()
+        if (en != null) {
+            for (ni in Collections.list(en)) {
+                if (!ni.isUp || ni.isLoopback) continue
+                for (ia in ni.interfaceAddresses) {
+                    val b = ia.broadcast
+                    if (b != null) out.add(b)
+                }
+            }
+        }
+    } catch (e: Exception) {
+    }
+    try {
+        out.add(InetAddress.getByName("255.255.255.255"))
+    } catch (e: Exception) {
+    }
+    return out
+}
+
+private fun nowMs(): Long = System.nanoTime() / 1_000_000L
+
+class Player(val id: Int, val name: String, private val socket: Socket) {
+    private val out = PrintWriter(OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8), true)
+
+    @Volatile var score = 0
+    @Volatile var answered = -1
+    @Volatile var gain = 0
+    @Volatile var correct = false
+
+    fun send(j: JSONObject) {
+        try {
+            synchronized(out) { out.println(j.toString()) }
+        } catch (e: Exception) {
+        }
+    }
+
+    fun close() {
+        try {
+            socket.close()
+        } catch (e: Exception) {
+        }
+    }
+}
+
+class GameServer(private val pool: List<Question>, hostLabel: String) {
+    private val label = hostLabel.replace("|", " ")
+    private val players = CopyOnWriteArrayList<Player>()
+    private var serverSocket: ServerSocket? = null
+    private var beacon: DatagramSocket? = null
+    private var gameThread: Thread? = null
+    private val lock = Any()
+    private var nextId = 1
+
+    @Volatile private var running = false
+    @Volatile var inGame = false
+        private set
+    @Volatile private var curIndex = -1
+    @Volatile private var curCorrect = -1
+    @Volatile private var curStart = 0L
+    @Volatile private var curLimitMs = 1L
+
+    fun start(port: Int, targets: () -> List<InetAddress>) {
+        val ss = ServerSocket()
+        ss.reuseAddress = true
+        ss.bind(InetSocketAddress(port))
+        serverSocket = ss
+        running = true
+        thread(isDaemon = true) { acceptLoop(ss) }
+        thread(isDaemon = true) { beaconLoop(port, targets) }
+    }
+
+    fun playerCount(): Int = players.size
+
+    fun stop() {
+        running = false
+        try {
+            serverSocket?.close()
+        } catch (e: Exception) {
+        }
+        try {
+            beacon?.close()
+        } catch (e: Exception) {
+        }
+        for (p in players) p.close()
+        players.clear()
+        gameThread?.interrupt()
+    }
+
+    // ---------------------------------------------------------------- الاتصالات
+
+    private fun acceptLoop(ss: ServerSocket) {
+        while (running) {
+            try {
+                val s = ss.accept()
+                s.tcpNoDelay = true
+                s.keepAlive = true
+                thread(isDaemon = true) { handleClient(s) }
+            } catch (e: Exception) {
+                if (!running) break
+                try {
+                    Thread.sleep(50)
+                } catch (ie: InterruptedException) {
+                    break
+                }
+            }
+        }
+    }
+
+    private fun beaconLoop(port: Int, targets: () -> List<InetAddress>) {
+        val sock = try {
+            DatagramSocket()
+        } catch (e: Exception) {
+            return
+        }
+        beacon = sock
+        try {
+            sock.broadcast = true
+            val data = ("ASQ1|" + label + "|" + port).toByteArray(Charsets.UTF_8)
+            while (running) {
+                for (addr in targets()) {
+                    try {
+                        sock.send(DatagramPacket(data, data.size, addr, DISCOVERY_PORT))
+                    } catch (e: Exception) {
+                    }
+                }
+                Thread.sleep(1000)
+            }
+        } catch (e: Exception) {
+        } finally {
+            sock.close()
+        }
+    }
+
+    private fun rawSend(s: Socket, j: JSONObject) {
+        try {
+            val pw = PrintWriter(OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8), true)
+            pw.println(j.toString())
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun uniqueName(base: String): String {
+        var n = base
+        var k = 2
+        while (players.any { it.name == n }) {
+            n = "$base $k"
+            k++
+        }
+        return n
+    }
+
+    private fun tryAdd(s: Socket, wanted: String): Player? {
+        return synchronized(lock) {
+            if (inGame) {
+                null
+            } else {
+                val p = Player(nextId++, uniqueName(wanted), s)
+                players.add(p)
+                p
+            }
+        }
+    }
+
+    private fun handleClient(s: Socket) {
+        var me: Player? = null
+        try {
+            val reader = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
+            s.soTimeout = 10000
+            val first = reader.readLine() ?: return
+            val j = JSONObject(first)
+            if (j.optString("t") != "join") return
+            var name = j.optString("name").trim()
+            if (name.length > 20) name = name.substring(0, 20)
+            if (name.isEmpty()) name = "لاعب"
+            val p = tryAdd(s, name)
+            if (p == null) {
+                rawSend(s, JSONObject().put("t", "error").put("msg", "المسابقة بدأت بالفعل، انتظر الجولة القادمة"))
+                return
+            }
+            me = p
+            s.soTimeout = 0
+            p.send(JSONObject().put("t", "joined").put("id", p.id).put("name", p.name))
+            broadcastPlayers()
+            while (true) {
+                val line = reader.readLine() ?: break
+                val m = try {
+                    JSONObject(line)
+                } catch (e: Exception) {
+                    continue
+                }
+                if (m.optString("t") == "answer") {
+                    onAnswer(p, m.optInt("i", -1), m.optInt("c", -1))
+                }
+            }
+        } catch (e: Exception) {
+        } finally {
+            val p = me
+            if (p != null) {
+                players.remove(p)
+                broadcastPlayers()
+            }
+            try {
+                s.close()
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    private fun playersJson(): JSONArray {
+        val a = JSONArray()
+        for (p in players) a.put(p.name)
+        return a
+    }
+
+    private fun broadcast(m: JSONObject) {
+        for (p in players) p.send(m)
+    }
+
+    private fun broadcastPlayers() {
+        if (!inGame) broadcast(JSONObject().put("t", "players").put("list", playersJson()))
+    }
+
+    // ---------------------------------------------------------------- اللعبة
+
+    private fun onAnswer(p: Player, qi: Int, choice: Int) {
+        synchronized(lock) {
+            if (qi != curIndex || p.answered != -1) return
+            val elapsed = nowMs() - curStart
+            if (elapsed > curLimitMs + 700) return
+            p.answered = choice
+            if (choice == curCorrect) {
+                val left = (curLimitMs - elapsed).coerceIn(0L, curLimitMs)
+                // 500 نقطة للإجابة الصحيحة + حتى 500 نقطة إضافية حسب السرعة
+                p.gain = (500 + 500 * left / curLimitMs).toInt()
+                p.score += p.gain
+                p.correct = true
+            }
+        }
+    }
+
+    fun startGame(count: Int, secs: Int): Boolean {
+        synchronized(lock) {
+            if (inGame || players.isEmpty()) return false
+            inGame = true
+        }
+        gameThread = thread(isDaemon = true) { runGame(count, secs) }
+        return true
+    }
+
+    private fun shuffleOptions(q: Question): Question {
+        val order = q.options.indices.shuffled()
+        val opts = order.map { q.options[it] }
+        return Question(q.text, opts, order.indexOf(q.answer))
+    }
+
+    private fun buildBoard(): JSONArray {
+        val a = JSONArray()
+        for (p in players.sortedByDescending { it.score }) {
+            a.put(
+                JSONObject()
+                    .put("name", p.name)
+                    .put("score", p.score)
+                    .put("gain", p.gain)
+                    .put("ok", p.correct)
+                    .put("ans", p.answered)
+            )
+        }
+        return a
+    }
+
+    private fun runGame(count: Int, secs: Int) {
+        try {
+            val picked = pool.shuffled().take(count).map { shuffleOptions(it) }
+            for (p in players) {
+                p.score = 0
+            }
+            for ((idx, q) in picked.withIndex()) {
+                if (!running) return
+                synchronized(lock) {
+                    for (p in players) {
+                        p.answered = -1
+                        p.gain = 0
+                        p.correct = false
+                    }
+                    curCorrect = q.answer
+                    curLimitMs = secs * 1000L
+                    curStart = nowMs()
+                    curIndex = idx
+                }
+                val opts = JSONArray()
+                for (o in q.options) opts.put(o)
+                broadcast(
+                    JSONObject().put("t", "question").put("i", idx).put("n", picked.size)
+                        .put("text", q.text).put("opts", opts).put("secs", secs)
+                )
+                val deadline = curStart + curLimitMs
+                while (running && nowMs() < deadline && players.any { it.answered == -1 }) {
+                    Thread.sleep(100)
+                }
+                synchronized(lock) { curIndex = -1 }
+                broadcast(
+                    JSONObject().put("t", "result").put("i", idx).put("n", picked.size)
+                        .put("correct", q.answer).put("board", buildBoard())
+                )
+                Thread.sleep(if (idx == picked.size - 1) 4000L else 6000L)
+            }
+            broadcast(JSONObject().put("t", "final").put("board", buildBoard()))
+        } catch (e: InterruptedException) {
+        }
+    }
+
+    /** يعيد الجميع إلى شاشة الانتظار لبدء مسابقة جديدة بنفس اللاعبين. */
+    fun backToLobby() {
+        thread(isDaemon = true) {
+            synchronized(lock) {
+                inGame = false
+                curIndex = -1
+                for (p in players) {
+                    p.score = 0
+                    p.gain = 0
+                    p.answered = -1
+                    p.correct = false
+                }
+            }
+            broadcast(JSONObject().put("t", "lobby").put("list", playersJson()))
+        }
+    }
+}
+
+// -------------------------------------------------------------------- العميل
+
+class GameClient(
+    private val host: String,
+    private val port: Int,
+    private val name: String,
+    private val onMessage: (JSONObject) -> Unit,
+    private val onClosed: (String?) -> Unit
+) {
+    @Volatile private var socket: Socket? = null
+    @Volatile private var out: PrintWriter? = null
+    @Volatile private var closedByUs = false
+    private val writer = Executors.newSingleThreadExecutor()
+
+    fun connect() {
+        thread(isDaemon = true) {
+            var err: String? = null
+            try {
+                val s = Socket()
+                s.connect(InetSocketAddress(host, port), 6000)
+                s.tcpNoDelay = true
+                s.keepAlive = true
+                socket = s
+                val pw = PrintWriter(OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8), true)
+                out = pw
+                pw.println(JSONObject().put("t", "join").put("name", name).toString())
+                val r = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
+                while (true) {
+                    val line = r.readLine() ?: break
+                    val j = try {
+                        JSONObject(line)
+                    } catch (e: Exception) {
+                        continue
+                    }
+                    onMessage(j)
+                }
+            } catch (e: Exception) {
+                err = e.message ?: "خطأ في الاتصال"
+            }
+            if (!closedByUs) onClosed(err)
+        }
+    }
+
+    fun send(j: JSONObject) {
+        try {
+            writer.execute {
+                try {
+                    out?.println(j.toString())
+                } catch (e: Exception) {
+                }
+            }
+        } catch (e: Exception) {
+        }
+    }
+
+    fun close() {
+        closedByUs = true
+        try {
+            socket?.close()
+        } catch (e: Exception) {
+        }
+        try {
+            writer.shutdown()
+        } catch (e: Exception) {
+        }
+    }
+}
+
+/** يستمع لبث المضيفين ويستدعي onFound(عنوان_IP, اسم_المضيف, المنفذ) عند العثور على غرفة. */
+fun discoverHosts(timeoutMs: Long, onFound: (String, String, Int) -> Unit, onDone: () -> Unit): Thread {
+    return thread(isDaemon = true) {
+        var sock: DatagramSocket? = null
+        try {
+            val s = DatagramSocket(null)
+            sock = s
+            s.reuseAddress = true
+            s.bind(InetSocketAddress(DISCOVERY_PORT))
+            s.soTimeout = 500
+            val end = System.currentTimeMillis() + timeoutMs
+            val buf = ByteArray(256)
+            val seen = HashSet<String>()
+            while (System.currentTimeMillis() < end) {
+                try {
+                    val p = DatagramPacket(buf, buf.size)
+                    s.receive(p)
+                    val text = String(p.data, 0, p.length, Charsets.UTF_8)
+                    val parts = text.split("|")
+                    if (parts.size >= 3 && parts[0] == "ASQ1") {
+                        val ip = p.address.hostAddress
+                        if (ip != null && seen.add(ip)) {
+                            onFound(ip, parts[1], parts[2].toIntOrNull() ?: GAME_PORT)
+                        }
+                    }
+                } catch (e: SocketTimeoutException) {
+                }
+            }
+        } catch (e: Exception) {
+        } finally {
+            try {
+                sock?.close()
+            } catch (e: Exception) {
+            }
+        }
+        onDone()
+    }
+}
+app/src/main/java/com/friends/quiz/MainActivity.ktpackage com.friends.quiz
+
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
+import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.text.InputType
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
+import org.json.JSONObject
+
+/**
+ * كل الواجهات تُبنى بالكود (بدون ملفات XML ولا مكتبات خارجية) ليبقى التطبيق خفيفاً
+ * ومتوافقاً مع أندرويد 5.0 فما فوق.
+ */
+class MainActivity : Activity() {
+
+    private val cBg = Color.parseColor("#14172B")
+    private val cCard = Color.parseColor("#1F2447")
+    private val cCard2 = Color.parseColor("#2C3363")
+    private val cAccent = Color.parseColor("#6C63FF")
+    private val cGood = Color.parseColor("#27AE60")
+    private val cBad = Color.parseColor("#E74C3C")
+    private val cMuted = Color.parseColor("#A9B0D6")
+
+    private val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
+    private val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+
+    private lateinit var prefs: SharedPreferences
+    private val ui = Handler(Looper.getMainLooper())
+
+    private var server: GameServer? = null
+    private var client: GameClient? = null
+    private var connSeq = 0
+    private var isHost = false
+    private var joined = false
+    private var myName = ""
+    private var screen = "home"
+
+    private var players: List<String> = emptyList()
+    private var playersBox: LinearLayout? = null
+    private var playersCount: TextView? = null
+
+    private var qCount = 10
+    private var qSecs = 15
+
+    private var curOpts: List<String> = emptyList()
+    private var curIdx = -1
+    private var mySel = -1
+    private val optButtons = ArrayList<Button>()
+    private var statusView: TextView? = null
+    private var timerRunnable: Runnable? = null
+
+    private var joinStatus: TextView? = null
+    private var foundBox: LinearLayout? = null
+    private var ipField: EditText? = null
+    private var mcLock: WifiManager.MulticastLock? = null
+
+    // ------------------------------------------------------------------ دورة الحياة
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        prefs = getSharedPreferences("quiz", Context.MODE_PRIVATE)
+        showHome()
+    }
+
+    override fun onDestroy() {
+        leaveAll()
+        releaseMulticast()
+        super.onDestroy()
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onBackPressed() {
+        if (screen == "home") {
+            super.onBackPressed()
+        } else {
+            leaveAll()
+            showHome()
+        }
+    }
+
+    // ------------------------------------------------------------------ أدوات واجهة
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density + 0.5f).toInt()
+
+    private fun toast(s: String) {
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun rounded(color: Int, radiusDp: Int = 14): GradientDrawable {
+        val g = GradientDrawable()
+        g.setColor(color)
+        g.cornerRadius = dp(radiusDp).toFloat()
+        return g
+    }
+
+    private fun tv(
+        text: String,
+        size: Float = 18f,
+        color: Int = Color.WHITE,
+        bold: Boolean = false,
+        gravity: Int = Gravity.CENTER
+    ): TextView {
+        val t = TextView(this)
+        t.text = text
+        t.textSize = size
+        t.setTextColor(color)
+        t.gravity = gravity
+        if (bold) t.setTypeface(null, Typeface.BOLD)
+        val lp = LinearLayout.LayoutParams(MATCH, WRAP)
+        lp.topMargin = dp(8)
+        t.layoutParams = lp
+        return t
+    }
+
+    private fun gap(h: Int): View {
+        val v = View(this)
+        v.layoutParams = LinearLayout.LayoutParams(MATCH, dp(h))
+        return v
+    }
+
+    private fun btn(label: String, color: Int, onClick: () -> Unit): Button {
+        val b = Button(this)
+        b.text = label
+        b.setTextColor(Color.WHITE)
+        b.textSize = 18f
+        b.background = rounded(color)
+        b.setPadding(dp(16), dp(14), dp(16), dp(14))
+        val lp = LinearLayout.LayoutParams(MATCH, WRAP)
+        lp.topMargin = dp(10)
+        b.layoutParams = lp
+        b.setOnClickListener { onClick() }
+        return b
+    }
+
+    private fun edit(hint: String): EditText {
+        val e = EditText(this)
+        e.hint = hint
+        e.setHintTextColor(Color.GRAY)
+        e.setTextColor(Color.BLACK)
+        e.textSize = 18f
+        e.background = rounded(Color.WHITE, 12)
+        e.setPadding(dp(14), dp(12), dp(14), dp(12))
+        e.gravity = Gravity.START or Gravity.CENTER_VERTICAL
+        e.inputType = InputType.TYPE_CLASS_TEXT
+        val lp = LinearLayout.LayoutParams(MATCH, WRAP)
+        lp.topMargin = dp(10)
+        e.layoutParams = lp
+        return e
+    }
+
+    private fun show(build: LinearLayout.() -> Unit) {
+        val sv = ScrollView(this)
+        sv.isFillViewport = true
+        sv.setBackgroundColor(cBg)
+        val col = LinearLayout(this)
+        col.orientation = LinearLayout.VERTICAL
+        col.gravity = Gravity.CENTER_HORIZONTAL
+        col.setPadding(dp(20), dp(28), dp(20), dp(28))
+        col.build()
+        sv.addView(col, ViewGroup.LayoutParams(MATCH, WRAP))
+        sv.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        setContentView(sv)
+    }
+
+    private fun boardRow(rank: Int, name: String, score: Int, gain: Int, me: Boolean): View {
+        val row = LinearLayout(this)
+        row.orientation = LinearLayout.HORIZONTAL
+        row.gravity = Gravity.CENTER_VERTICAL
+        row.background = rounded(if (me) cAccent else cCard, 12)
+        row.setPadding(dp(12), dp(10), dp(12), dp(10))
+        val lp = LinearLayout.LayoutParams(MATCH, WRAP)
+        lp.topMargin = dp(6)
+        row.layoutParams = lp
+
+        val medal = when (rank) {
+            1 -> "🥇"
+            2 -> "🥈"
+            3 -> "🥉"
+            else -> rank.toString()
+        }
+        val r = TextView(this)
+        r.text = medal
+        r.textSize = 20f
+        r.setTextColor(Color.WHITE)
+        r.gravity = Gravity.CENTER
+        r.minWidth = dp(40)
+        row.addView(r)
+
+        val n = TextView(this)
+        n.text = name
+        n.textSize = 18f
+        n.setTextColor(Color.WHITE)
+        if (me) n.setTypeface(null, Typeface.BOLD)
+        n.layoutParams = LinearLayout.LayoutParams(0, WRAP, 1f)
+        row.addView(n)
+
+        if (gain > 0) {
+            val g = TextView(this)
+            g.text = "+$gain"
+            g.textSize = 14f
+            g.setTextColor(Color.parseColor("#7CFFB2"))
+            g.setPadding(dp(8), 0, dp(8), 0)
+            row.addView(g)
+        }
+
+        val s = TextView(this)
+        s.text = score.toString()
+        s.textSize = 20f
+        s.setTypeface(null, Typeface.BOLD)
+        s.setTextColor(Color.WHITE)
+        row.addView(s)
+        return row
+    }
+
+    // ------------------------------------------------------------------ الشاشة الرئيسية
+
+    private fun readName(f: EditText): String? {
+        val n = f.text.toString().trim()
+        if (n.isEmpty()) {
+            toast("اكتب اسمك أولاً")
+            return null
+        }
+        prefs.edit().putString("name", n).apply()
+        return if (n.length > 20) n.substring(0, 20) else n
+    }
+
+    private fun showHome() {
+        screen = "home"
+        val nameField = edit("اسمك في المسابقة")
+        nameField.setText(prefs.getString("name", "") ?: "")
+        show {
+            addView(tv("🎯", 64f))
+            addView(tv("مسابقة الأصدقاء", 30f, bold = true))
+            addView(tv("منافسة جماعية بدون إنترنت\nعبر هوت سبوت الهاتف", 15f, cMuted))
+            addView(gap(18))
+            addView(nameField)
+            addView(btn("🏠  إنشاء غرفة (أنا المضيف)", cAccent) {
+                val n = readName(nameField)
+                if (n != null) startHosting(n)
+            })
+            addView(btn("🔌  الانضمام إلى غرفة", cGood) {
+                val n = readName(nameField)
+                if (n != null) showJoin(n)
+            })
+            addView(btn("➕  إضافة أسئلة خاصة بي", cCard2) { showAddQuestions() })
+            addView(btn("❓  طريقة الاستخدام", cCard2) { showHowTo() })
+        }
+    }
+
+    private fun showHowTo() {
+        screen = "howto"
+        show {
+            addView(tv("طريقة اللعب", 26f, bold = true))
+            addView(
+                tv(
+                    "١) أحد الأصدقاء يشغّل «نقطة اتصال / Hotspot» في هاتفه (لا يحتاج إنترنت).\n\n" +
+                        "٢) باقي الأصدقاء يتصلون بشبكة الهوت سبوت من إعدادات الواي فاي.\n\n" +
+                        "٣) صاحب الهوت سبوت يفتح التطبيق ثم «إنشاء غرفة».\n\n" +
+                        "٤) الباقون يفتحون «الانضمام إلى غرفة» ثم «بحث تلقائي»، أو يكتبون العنوان الظاهر عند المضيف.\n\n" +
+                        "٥) المضيف يضغط «ابدأ المسابقة».\n\n" +
+                        "الإجابة الصحيحة تعطي 500 نقطة، وكل ثانية متبقية تضيف نقاطاً أكثر، فكن سريعاً!\n\n" +
+                        "الأسئلة المضافة من «إضافة أسئلة» تُستخدم فقط عندما يكون هاتفك هو المضيف.",
+                    17f, Color.WHITE, false, Gravity.START
+                )
+            )
+            addView(btn("رجوع", cCard2) { showHome() })
+        }
+    }
+
+    // ------------------------------------------------------------------ المضيف
+
+    private fun loadCustom(): List<Question> {
+        return try {
+            val c = prefs.getString("custom", null)
+            if (c == null) emptyList() else parseQuestions(c)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun loadQuestions(): List<Question> {
+        val list = ArrayList<Question>()
+        try {
+            val txt = assets.open("questions.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            list.addAll(parseQuestions(txt))
+        } catch (e: Exception) {
+        }
+        list.addAll(loadCustom())
+        return list
+    }
+
+    private fun startHosting(name: String) {
+        leaveAll()
+        unbindNetwork()
+        val pool = loadQuestions()
+        if (pool.isEmpty()) {
+            toast("تعذر تحميل الأسئلة")
+            return
+        }
+        val srv = GameServer(pool, name)
+        try {
+            srv.start(GAME_PORT) { broadcastTargets() }
+        } catch (e: Exception) {
+            toast("تعذر إنشاء الغرفة: " + (e.message ?: ""))
+            return
+        }
+        server = srv
+        isHost = true
+        myName = name
+        players = emptyList()
+        showLobby()
+        connectClient("127.0.0.1")
+    }
+
+    private fun connectClient(host: String) {
+        val id = connSeq
+        val c = GameClient(
+            host, GAME_PORT, myName,
+            { m -> runOnUiThread { if (id == connSeq) onMessage(m) } },
+            { err -> runOnUiThread { if (id == connSeq) onDisconnected(err) } }
+        )
+        client = c
+        c.connect()
+    }
+
+    // ------------------------------------------------------------------ الانضمام
+
+    @Suppress("DEPRECATION")
+    private fun gatewayIp(): String {
+        try {
+            val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val gw = wm.dhcpInfo.gateway
+            if (gw != 0) {
+                return (gw and 0xff).toString() + "." + ((gw shr 8) and 0xff) + "." +
+                    ((gw shr 16) and 0xff) + "." + ((gw shr 24) and 0xff)
+            }
+        } catch (e: Exception) {
+        }
+        return prefs.getString("ip", "192.168.43.1") ?: "192.168.43.1"
+    }
+
+    @Suppress("DEPRECATION")
+    private fun bindToWifi() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            for (n in cm.allNetworks) {
+                val caps = cm.getNetworkCapabilities(n) ?: continue
+                if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        cm.bindProcessToNetwork(n)
+                    } else {
+                        ConnectivityManager.setProcessDefaultNetwork(n)
+                    }
+                    return
+                }
+            }
+        } catch (e: Exception) {
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun unbindNetwork() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            if (Build.VERSION.SDK_INT >= 23) {
+                cm.bindProcessToNetwork(null)
+            } else {
+                ConnectivityManager.setProcessDefaultNetwork(null)
+            }
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun acquireMulticast() {
+        try {
+            val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val l = wm.createMulticastLock("quiz")
+            l.setReferenceCounted(false)
+            l.acquire()
+            mcLock = l
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun releaseMulticast() {
+        try {
+            mcLock?.let { if (it.isHeld) it.release() }
+        } catch (e: Exception) {
+        }
+        mcLock = null
+    }
+
+    private fun showJoin(name: String) {
+        screen = "join"
+        myName = name
+        val ip = edit("عنوان المضيف مثل 192.168.43.1")
+        ip.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        ip.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        ip.textDirection = View.TEXT_DIRECTION_LTR
+        ip.gravity = Gravity.CENTER
+        ip.setText(gatewayIp())
+        ipField = ip
+        val status = tv("", 15f, cMuted)
+        joinStatus = status
+        val found = LinearLayout(this)
+        found.orientation = LinearLayout.VERTICAL
+        found.layoutParams = LinearLayout.LayoutParams(MATCH, WRAP)
+        foundBox = found
+        show {
+            addView(tv("الانضمام إلى غرفة", 26f, bold = true))
+            addView(tv("اتصل أولاً بشبكة الهوت سبوت الخاصة بالمضيف من إعدادات الواي فاي", 15f, cMuted))
+            addView(gap(8))
+            addView(btn("🔍  بحث تلقائي عن الغرف", cAccent) { startDiscovery() })
+            addView(found)
+            addView(tv("أو اكتب العنوان يدوياً:", 14f, cMuted))
+            addView(ip)
+            addView(btn("اتصال", cGood) {
+                val addr = ip.text.toString().trim()
+                if (addr.isEmpty()) toast("اكتب عنوان المضيف") else doJoin(addr)
+            })
+            addView(status)
+            addView(btn("رجوع", cCard2) {
+                leaveAll()
+                showHome()
+            })
+        }
+    }
+
+    private fun startDiscovery() {
+        bindToWifi()
+        acquireMulticast()
+        foundBox?.removeAllViews()
+        joinStatus?.text = "جارٍ البحث عن الغرف..."
+        discoverHosts(
+            6000,
+            { ip, label, _ ->
+                runOnUiThread {
+                    if (screen == "join") {
+                        ipField?.setText(ip)
+                        foundBox?.addView(btn("🎮  غرفة $label  ($ip)", cGood) { doJoin(ip) })
+                    }
+                }
+            },
+            {
+                runOnUiThread {
+                    releaseMulticast()
+                    if (screen == "join") {
+                        val any = (foundBox?.childCount ?: 0) > 0
+                        joinStatus?.text =
+                            if (any) "اضغط على الغرفة للانضمام" else "لم يتم العثور على غرف. تأكد من الاتصال بالهوت سبوت أو اكتب العنوان يدوياً."
+                    }
+                }
+            }
+        )
+    }
+
+    private fun doJoin(ip: String) {
+        leaveAll()
+        bindToWifi()
+        isHost = false
+        joined = false
+        prefs.edit().putString("ip", ip).apply()
+        joinStatus?.text = "جارٍ الاتصال بـ $ip ..."
+        connectClient(ip)
+    }
+
+    // ------------------------------------------------------------------ الرسائل
+
+    private fun onMessage(j: JSONObject) {
+        when (j.optString("t")) {
+            "joined" -> {
+                joined = true
+                myName = j.optString("name", myName)
+                if (!isHost) showLobby()
+            }
+            "players" -> {
+                readPlayers(j)
+                if (screen == "lobby") refreshPlayers()
+            }
+            "lobby" -> {
+                readPlayers(j)
+                if (screen == "lobby") refreshPlayers() else showLobby()
+            }
+            "error" -> {
+                val msg = j.optString("msg", "حدث خطأ")
+                leaveAll()
+                showHome()
+                toast(msg)
+            }
+            "question" -> showQuestion(j)
+            "result" -> showResult(j)
+            "final" -> showFinal(j)
+        }
+    }
+
+    private fun readPlayers(j: JSONObject) {
+        val arr = j.optJSONArray("list")
+        val out = ArrayList<String>()
+        if (arr != null) {
+            for (i in 0 until arr.length()) out.add(arr.optString(i))
+        }
+        players = out
+    }
+
+    private fun onDisconnected(err: String?) {
+        if (!joined && screen == "join") {
+            joinStatus?.text = "تعذر الاتصال: " + (err ?: "") +
+                "\nتأكد أنك متصل بهوت سبوت المضيف وأن العنوان صحيح"
+            return
+        }
+        if (screen != "home") {
+            leaveAll()
+            showHome()
+            toast("انقطع الاتصال بالغرفة")
+        }
+    }
+
+    private fun leaveAll() {
+        connSeq++
+        stopTimer()
+        try {
+            client?.close()
+        } catch (e: Exception) {
+        }
+        try {
+            server?.stop()
+        } catch (e: Exception) {
+        }
+        client = null
+        server = null
+        joined = false
+        isHost = false
+    }
+
+    // ------------------------------------------------------------------ غرفة الانتظار
+
+    private fun cycleButton(
+        prefix: String,
+        suffix: String,
+        values: IntArray,
+        get: () -> Int,
+        set: (Int) -> Unit
+    ): Button {
+        val b = btn("", cCard2) { }
+        val upd = { b.text = prefix + ": " + get() + " " + suffix + "  ⟳" }
+        b.setOnClickListener {
+            val i = values.indexOf(get())
+            set(values[(i + 1) % values.size])
+            upd()
+        }
+        upd()
+        return b
+    }
+
+    private fun showLobby() {
+        screen = "lobby"
+        stopTimer()
+        val box = LinearLayout(this)
+        box.orientation = LinearLayout.VERTICAL
+        box.background = rounded(cCard)
+        box.setPadding(dp(14), dp(10), dp(14), dp(10))
+        box.layoutParams = LinearLayout.LayoutParams(MATCH, WRAP)
+        playersBox = box
+        val count = tv("", 16f, cMuted)
+        playersCount = count
+
+        show {
+            addView(tv(if (isHost) "غرفتك جاهزة 🎉" else "تم الاتصال ✓", 26f, bold = true))
+            if (isHost) {
+                addView(tv("عنوان الغرفة الذي يكتبه أصدقاؤك (أو يجدونه بالبحث التلقائي):", 14f, cMuted))
+                val ips = localIpv4()
+                if (ips.isEmpty()) {
+                    addView(tv("تأكد من تشغيل الهوت سبوت. عنوانه غالباً 192.168.43.1", 16f, cBad))
+                } else {
+                    for (a in ips) {
+                        val t = tv(a, 28f, Color.parseColor("#7CFFB2"), true)
+                        t.setTextIsSelectable(true)
+                        t.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                        addView(t)
+                    }
+                }
+            } else {
+                addView(tv("بانتظار المضيف ليبدأ المسابقة...", 16f, cMuted))
+            }
+            addView(gap(6))
+            addView(count)
+            addView(box)
+            if (isHost) {
+                addView(gap(6))
+                addView(cycleButton("عدد الأسئلة", "", intArrayOf(5, 10, 15, 20, 30), { qCount }, { qCount = it }))
+                addView(cycleButton("وقت السؤال", "ثانية", intArrayOf(10, 15, 20, 30), { qSecs }, { qSecs = it }))
+                addView(btn("▶  ابدأ المسابقة", cGood) {
+                    val s = server
+                    if (s == null || !s.startGame(qCount, qSecs)) toast("لا يمكن البدء الآن")
+                })
+            }
+            addView(btn("خروج", cBad) {
+                leaveAll()
+                showHome()
+            })
+        }
+        refreshPlayers()
+    }
+
+    private fun refreshPlayers() {
+        val box = playersBox ?: return
+        box.removeAllViews()
+        playersCount?.text = "اللاعبون (" + players.size + ")"
+        for (p in players) {
+            box.addView(tv("👤  $p", 18f, Color.WHITE, false, Gravity.START))
+        }
+    }
+
+    // ------------------------------------------------------------------ السؤال
+
+    private fun stopTimer() {
+        timerRunnable?.let { ui.removeCallbacks(it) }
+        timerRunnable = null
+    }
+
+    private fun lockOptions() {
+        for (b in optButtons) b.isEnabled = false
+    }
+
+    private fun startTimer(secs: Int, bar: ProgressBar, label: TextView) {
+        stopTimer()
+        val start = SystemClock.elapsedRealtime()
+        val total = secs * 1000L
+        val r = object : Runnable {
+            override fun run() {
+                val el = SystemClock.elapsedRealtime() - start
+                val left = (total - el).coerceAtLeast(0L)
+                bar.progress = left.toInt()
+                label.text = ((left + 999) / 1000).toString()
+                if (left > 0) {
+                    ui.postDelayed(this, 100)
+                } else {
+                    lockOptions()
+                    if (mySel == -1) statusView?.text = "انتهى الوقت ⏰"
+                }
+            }
+        }
+        timerRunnable = r
+        ui.post(r)
+    }
+
+    private fun showQuestion(j: JSONObject) {
+        screen = "question"
+        val idx = j.optInt("i")
+        val n = j.optInt("n")
+        val secs = j.optInt("secs", 15)
+        val arr = j.getJSONArray("opts")
+        val opts = ArrayList<String>()
+        for (k in 0 until arr.length()) opts.add(arr.getString(k))
+        curOpts = opts
+        curIdx = idx
+        mySel = -1
+        optButtons.clear()
+
+        val bar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
+        bar.max = secs * 1000
+        bar.progress = secs * 1000
+        bar.progressTintList = ColorStateList.valueOf(cAccent)
+        bar.layoutParams = LinearLayout.LayoutParams(MATCH, dp(10))
+        val timerText = tv(secs.toString(), 40f, cAccent, true)
+        val status = tv("", 15f, cMuted)
+        statusView = status
+
+        show {
+            addView(tv("السؤال " + (idx + 1) + " من " + n, 15f, cMuted))
+            addView(timerText)
+            addView(bar)
+            val q = tv(j.optString("text"), 22f, Color.WHITE, true)
+            q.background = rounded(cCard)
+            q.setPadding(dp(16), dp(20), dp(16), dp(20))
+            val qlp = LinearLayout.LayoutParams(MATCH, WRAP)
+            qlp.topMargin = dp(16)
+            qlp.bottomMargin = dp(8)
+            q.layoutParams = qlp
+            addView(q)
+            for ((k, text) in opts.withIndex()) {
+                val b = btn(text, cCard2) { }
+                b.setOnClickListener {
+                    if (mySel == -1) {
+                        mySel = k
+                        for ((x, ob) in optButtons.withIndex()) {
+                            ob.isEnabled = false
+                            ob.background = rounded(if (x == k) cAccent else cCard, 14)
+                        }
+                        client?.send(JSONObject().put("t", "answer").put("i", idx).put("c", k))
+                        status.text = "تم إرسال إجابتك ✓ بانتظار الآخرين..."
+                    }
+                }
+                optButtons.add(b)
+                addView(b)
+            }
+            addView(status)
+        }
+        startTimer(secs, bar, timerText)
+    }
+
+    // ------------------------------------------------------------------ النتيجة
+
+    private fun showResult(j: JSONObject) {
+        screen = "result"
+        stopTimer()
+        val correct = j.optInt("correct")
+        val n = j.optInt("n")
+        val idx = j.optInt("i")
+        val board = j.getJSONArray("board")
+        var myGain = 0
+        var myOk = false
+        var myAns = -1
+        for (k in 0 until board.length()) {
+            val e = board.getJSONObject(k)
+            if (e.optString("name") == myName) {
+                myGain = e.optInt("gain")
+                myOk = e.optBoolean("ok")
+                myAns = e.optInt("ans", -1)
+            }
+        }
+        val correctText = if (correct in 0 until curOpts.size) curOpts[correct] else ""
+        show {
+            if (myOk) {
+                addView(tv("✅ إجابة صحيحة!", 28f, Color.parseColor("#7CFFB2"), true))
+                addView(tv("+$myGain نقطة", 22f, Color.WHITE, true))
+            } else if (myAns == -1) {
+                addView(tv("⏰ لم تُجب في الوقت", 26f, cBad, true))
+            } else {
+                addView(tv("❌ إجابة خاطئة", 28f, cBad, true))
+            }
+            addView(tv("الإجابة الصحيحة: $correctText", 18f, Color.WHITE))
+            addView(gap(8))
+            addView(tv("الترتيب الحالي", 16f, cMuted))
+            for (k in 0 until board.length()) {
+                val e = board.getJSONObject(k)
+                val nm = e.optString("name")
+                addView(boardRow(k + 1, nm, e.optInt("score"), e.optInt("gain"), nm == myName))
+            }
+            addView(
+                tv(
+                    if (idx + 1 >= n) "جارٍ حساب النتيجة النهائية..." else "السؤال التالي بعد قليل...",
+                    14f, cMuted
+                )
+            )
+        }
+    }
+
+    private fun showFinal(j: JSONObject) {
+        screen = "final"
+        stopTimer()
+        val board = j.getJSONArray("board")
+        var myRank = 0
+        for (k in 0 until board.length()) {
+            if (board.getJSONObject(k).optString("name") == myName) myRank = k + 1
+        }
+        show {
+            addView(tv("🏆 النتيجة النهائية", 28f, bold = true))
+            if (myRank == 1) {
+                addView(tv("مبروك! أنت الفائز 🎉", 22f, Color.parseColor("#FFD54F"), true))
+            } else if (myRank > 0) {
+                addView(tv("ترتيبك: $myRank", 20f, Color.WHITE, true))
+            }
+            addView(gap(8))
+            for (k in 0 until board.length()) {
+                val e = board.getJSONObject(k)
+                val nm = e.optString("name")
+                addView(boardRow(k + 1, nm, e.optInt("score"), 0, nm == myName))
+            }
+            if (isHost) {
+                addView(btn("🔄  لعبة جديدة بنفس اللاعبين", cGood) { server?.backToLobby() })
+            } else {
+                addView(tv("بانتظار المضيف لبدء لعبة جديدة، أو اخرج.", 14f, cMuted))
+            }
+            addView(btn("خروج", cBad) {
+                leaveAll()
+                showHome()
+            })
+        }
+    }
+
+    // ------------------------------------------------------------------ إضافة أسئلة
+
+    private fun showAddQuestions() {
+        screen = "add"
+        val q = edit("نص السؤال")
+        val opts = Array(4) { edit("الخيار " + (it + 1)) }
+        var correct = 0
+        val cb = btn("", cCard2) { }
+        val updC = { cb.text = "الإجابة الصحيحة: الخيار " + (correct + 1) + "  ⟳" }
+        cb.setOnClickListener {
+            correct = (correct + 1) % 4
+            updC()
+        }
+        updC()
+        val countView = tv("", 14f, cMuted)
+        val updCount = { countView.text = "أسئلتك المضافة: " + loadCustom().size }
+        updCount()
+
+        show {
+            addView(tv("إضافة سؤال جديد", 26f, bold = true))
+            addView(tv("تظهر أسئلتك مع أسئلة التطبيق عندما تكون أنت المضيف", 14f, cMuted))
+            addView(q)
+            for (o in opts) addView(o)
+            addView(cb)
+            addView(btn("💾  حفظ السؤال", cGood) {
+                val text = q.text.toString().trim()
+                val list = opts.map { it.text.toString().trim() }
+                if (text.isEmpty() || list.any { it.isEmpty() }) {
+                    toast("اكتب السؤال والخيارات الأربعة")
+                } else if (list.toSet().size < 4) {
+                    toast("الخيارات يجب أن تكون مختلفة")
+                } else {
+                    val all = ArrayList<Question>(loadCustom())
+                    all.add(Question(text, list, correct))
+                    prefs.edit().putString("custom", questionsToJson(all)).apply()
+                    q.setText("")
+                    for (o in opts) o.setText("")
+                    updCount()
+                    toast("تمت الإضافة ✓")
+                }
+            })
+            addView(countView)
+            addView(btn("🗑  حذف كل أسئلتي المضافة", cBad) {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage("حذف كل الأسئلة التي أضفتها؟")
+                    .setPositiveButton("حذف") { _, _ ->
+                        prefs.edit().remove("custom").apply()
+                        updCount()
+                    }
+                    .setNegativeButton("إلغاء", null)
+                    .show()
+            })
+            addView(btn("رجوع", cCard2) { showHome() })
+        }
+    }
+}.github/workflows/build.ymlname: Build APK
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - run: gradle assembleDebug --no-daemon -Dorg.gradle.jvmargs=-Xmx2g
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FriendsQuiz-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+
