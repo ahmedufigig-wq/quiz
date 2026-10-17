@@ -21,6 +21,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -43,6 +44,24 @@ class MainActivity : Activity() {
     private val cGood = Color.parseColor("#27AE60")
     private val cBad = Color.parseColor("#E74C3C")
     private val cMuted = Color.parseColor("#A9B0D6")
+
+    // ===== ألوان الخلفية: كل سطر لونان (من الأعلى إلى الأسفل). عدّل الألوان أو أضف أسطراً كما تشاء =====
+    private val themes = arrayOf(
+        intArrayOf(Color.parseColor("#14172B"), Color.parseColor("#2D1B69")), // ليلي بنفسجي
+        intArrayOf(Color.parseColor("#0F2027"), Color.parseColor("#2C5364")), // أزرق محيطي
+        intArrayOf(Color.parseColor("#0B3D2E"), Color.parseColor("#1E8449")), // أخضر
+        intArrayOf(Color.parseColor("#3A0CA3"), Color.parseColor("#B5179E")), // بنفسجي وردي
+        intArrayOf(Color.parseColor("#7B1E1E"), Color.parseColor("#1F1D36")), // أحمر داكن
+        intArrayOf(Color.parseColor("#111111"), Color.parseColor("#2B2B2B"))  // رمادي داكن
+    )
+    private val themeNames = arrayOf("ليلي بنفسجي", "أزرق محيطي", "أخضر", "بنفسجي وردي", "أحمر داكن", "رمادي داكن")
+    private var rootView: ScrollView? = null
+    private var welcomeRunnable: Runnable? = null
+
+    private fun backgroundFor(i: Int): GradientDrawable {
+        val c = themes[((i % themes.size) + themes.size) % themes.size]
+        return GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, c)
+    }
 
     private val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
     private val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
@@ -83,7 +102,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         prefs = getSharedPreferences("quiz", Context.MODE_PRIVATE)
-        showHome()
+        showWelcome()
     }
 
     override fun onDestroy() {
@@ -94,7 +113,7 @@ class MainActivity : Activity() {
 
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
-        if (screen == "home") {
+        if (screen == "home" || screen == "welcome") {
             super.onBackPressed()
         } else {
             leaveAll()
@@ -175,7 +194,8 @@ class MainActivity : Activity() {
     private fun show(build: LinearLayout.() -> Unit) {
         val sv = ScrollView(this)
         sv.isFillViewport = true
-        sv.setBackgroundColor(cBg)
+        sv.background = backgroundFor(prefs.getInt("theme", 0))
+        rootView = sv
         val col = LinearLayout(this)
         col.orientation = LinearLayout.VERTICAL
         col.gravity = Gravity.CENTER_HORIZONTAL
@@ -248,7 +268,46 @@ class MainActivity : Activity() {
         return if (n.length > 20) n.substring(0, 20) else n
     }
 
+    // ------------------------------------------------------------------ شاشة الترحيب
+
+    private fun showWelcome() {
+        screen = "welcome"
+        val saved = prefs.getString("name", "") ?: ""
+        val icon = tv("🎯", 84f)
+        val hello = tv(if (saved.isEmpty()) "أهلاً وسهلاً" else "أهلاً بك يا $saved", 32f, Color.WHITE, true)
+        val title = tv("مرحباً بكم في مسابقة الأصدقاء", 20f, Color.parseColor("#C9CCFF"))
+        val sub = tv("تحدّوا بعضكم بدون إنترنت\nوالأسرع والأذكى يفوز 🏆", 16f, cMuted)
+        val go = btn("ابدأ اللعب", cAccent) { showHome() }
+        val later = arrayOf<View>(hello, title, sub, go)
+        for (v in later) v.alpha = 0f
+        icon.alpha = 0f
+        icon.scaleX = 0.3f
+        icon.scaleY = 0.3f
+        show {
+            addView(gap(90))
+            addView(icon)
+            addView(hello)
+            addView(title)
+            addView(gap(8))
+            addView(sub)
+            addView(gap(28))
+            addView(go)
+        }
+        icon.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(900)
+            .setInterpolator(OvershootInterpolator()).start()
+        var delay = 500L
+        for (v in later) {
+            v.animate().alpha(1f).setStartDelay(delay).setDuration(700).start()
+            delay += 350L
+        }
+        // ينتقل تلقائياً للشاشة الرئيسية بعد 5 ثوانٍ (يمكن تغيير الرقم 5000)
+        val r = Runnable { if (screen == "welcome") showHome() }
+        welcomeRunnable = r
+        ui.postDelayed(r, 5000)
+    }
+
     private fun showHome() {
+        welcomeRunnable?.let { ui.removeCallbacks(it) }
         screen = "home"
         val nameField = edit("اسمك في المسابقة")
         nameField.setText(prefs.getString("name", "") ?: "")
@@ -267,6 +326,12 @@ class MainActivity : Activity() {
                 if (n != null) showJoin(n)
             })
             addView(btn("➕  إضافة أسئلة خاصة بي", cCard2) { showAddQuestions() })
+            addView(btn("🎨  تغيير الخلفية", cCard2) {
+                val next = (prefs.getInt("theme", 0) + 1) % themes.size
+                prefs.edit().putInt("theme", next).apply()
+                rootView?.background = backgroundFor(next)
+                toast("الخلفية: " + themeNames[next])
+            })
             addView(btn("❓  طريقة الاستخدام", cCard2) { showHowTo() })
         }
     }
