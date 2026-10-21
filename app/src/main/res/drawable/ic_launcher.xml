@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- لوغو تحدي الأصدقاء: صديقان متقابلان وكأس مسابقة ذهبي بينهما فيه علامة استفهام -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group>
+        <clip-path android:pathData="M24,0 H84 A24,24 0 0 1 108,24 V84 A24,24 0 0 1 84,108 H24 A24,24 0 0 1 0,84 V24 A24,24 0 0 1 24,0 Z"/>
+        <path android:fillColor="#3F37C9" android:pathData="M0,0h108v108h-108z"/>
+        <path android:fillColor="#2B2A9E" android:pathData="M0,70 L108,50 L108,108 L0,108 Z"/>
+        <path android:fillColor="#2AFFFFFF" android:pathData="M54,50m-40,0a40,40 0 1,0 80,0a40,40 0 1,0 -80,0"/>
+        <path android:fillColor="#22D3EE" android:pathData="M26,78m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0"/>
+        <path android:fillColor="#22D3EE" android:pathData="M8,108 L8,100 C8,91 16,88 26,88 C36,88 44,91 44,100 L44,108 Z"/>
+        <path android:fillColor="#FF4081" android:pathData="M82,78m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0"/>
+        <path android:fillColor="#FF4081" android:pathData="M64,108 L64,100 C64,91 72,88 82,88 C92,88 100,91 100,100 L100,108 Z"/>
+        <path android:fillColor="#FFC107" android:pathData="M37,20 H71 V40 C71,53 63,60 54,60 C45,60 37,53 37,40 Z"/>
+        <path android:fillColor="#FFA000" android:pathData="M50,60 H58 V68 H50 Z"/>
+        <path android:fillColor="#FF8F00" android:pathData="M40,68 H68 Q70,68 70,70 V74 Q70,76 68,76 H40 Q38,76 38,74 V70 Q38,68 40,68 Z"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M17,10 L19.5,16.5 L26,19 L19.5,21.5 L17,28 L14.5,21.5 L8,19 L14.5,16.5 Z"/>
+        <path android:fillColor="#FFEB3B" android:pathData="M92,12 L94,17 L99,19 L94,21 L92,26 L90,21 L85,19 L90,17 Z"/>
+        <path android:fillColor="#3F37C9" android:pathData="M54,48.5m-2.4,0a2.4,2.4 0 1,0 4.8,0a2.4,2.4 0 1,0 -4.8,0"/>
+    </group>
+    <path android:pathData="M37,25 H30 C30,38 34,43 41,45" android:strokeColor="#FFC107" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:pathData="M71,25 H78 C78,38 74,43 67,45" android:strokeColor="#FFC107" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:pathData="M48.5,31 C48.5,24 59.5,24 59.5,31 C59.5,36 54,37 54,42" android:strokeColor="#3F37C9" android:strokeWidth="3.6" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+</vector>
